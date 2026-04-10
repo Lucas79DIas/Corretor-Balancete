@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corretor de Balancete — SICOM</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:            #f0f2f5;
+    --surface:       #ffffff;
+    --surface2:      #f7f8fa;
+    --border:        #dde1e8;
+    --border-bright: #b8c0cc;
+    --teal:          #1a9e7c;
+    --teal-light:    #e8f7f3;
+    --teal-mid:      #c2ece1;
+    --teal-dark:     #137a60;
+    --blue:          #1565c0;
+    --blue-light:    #e3eeff;
+    --warn:          #e65100;
+    --warn-light:    #fff3e0;
+    --danger:        #c62828;
+    --purple:        #6a1b9a;
+    --purple-light:  #f3e5f5;
+    --text:          #1a2233;
+    --text-muted:    #5a6478;
+    --text-dim:      #9aa3b2;
+    --mono:          'Roboto Mono', monospace;
+    --sans:          'Inter', sans-serif;
+    --radius:        6px;
+    --shadow:        0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md:     0 4px 12px rgba(0,0,0,0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* Top bar */
+  .topbar {
+    background: var(--teal);
+    padding: 0 32px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  }
+  .topbar-icon {
+    width: 28px; height: 28px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .topbar-title {
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+  .topbar-sub {
+    color: rgba(255,255,255,0.7);
+    font-size: 12px;
+    margin-left: 4px;
+  }
+
+  .app {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 28px 24px 60px;
+  }
+
+  /* Page header */
+  .page-header {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .page-header-icon {
+    width: 44px; height: 44px;
+    background: var(--teal-light);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .page-header h1 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .page-header p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 3px;
+    line-height: 1.5;
+  }
+
+  /* Section card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .card-header {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .card-header-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--teal);
+  }
+  .card-header span {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .card-body { padding: 20px; }
+
+  /* Upload area */
+  .uploads {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .upload-card {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+    background: var(--surface2);
+  }
+  .upload-card:hover { border-color: var(--border-bright); }
+  .upload-card.has-file { border-color: var(--teal); border-style: solid; background: var(--teal-light); }
+  .upload-card.dragover { border-color: var(--teal); background: var(--teal-light); }
+
+  .upload-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .upload-label .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--border-bright);
+  }
+  .upload-card.has-file .dot { background: var(--teal); }
+  .upload-card.has-file .upload-label { color: var(--teal-dark); }
+
+  .upload-icon { font-size: 26px; margin-bottom: 8px; }
+  .upload-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .upload-hint { font-size: 12px; color: var(--text-muted); }
+  .upload-filename {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--teal-dark);
+    margin-top: 8px;
+    word-break: break-all;
+    font-weight: 500;
+  }
+
+  .btn-select {
+    margin-top: 14px;
+    padding: 7px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    color: var(--text-muted);
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .btn-select:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-light); }
+  .upload-card.has-file .btn-select { border-color: var(--teal); color: var(--teal); background: #fff; }
+
+  /* Flow badge */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0;
+    font-size: 11px;
+    color: var(--text-dim);
+    font-family: var(--mono);
+  }
+  .flow-line { flex: 1; height: 1px; background: var(--border); }
+  .flow-badge {
+    padding: 4px 12px;
+    border: 1px solid var(--teal-mid);
+    border-radius: 20px;
+    background: var(--teal-light);
+    color: var(--teal-dark);
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* Run button */
+  .btn-run {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 13px;
+    background: var(--teal);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    box-shadow: 0 2px 6px rgba(26,158,124,0.35);
+  }
+  .btn-run:disabled { background: var(--border-bright); color: #fff; cursor: not-allowed; box-shadow: none; }
+  .btn-run:not(:disabled):hover { background: var(--teal-dark); }
+  .btn-run:not(:disabled):active { transform: scale(0.99); }
+
+  /* Log panel */
+  .log-panel {
+    background: #f8fffe;
+    border: 1px solid var(--teal-mid);
+    border-left: 4px solid var(--teal);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.9;
+    display: none;
+  }
+  .log-panel.visible { display: block; }
+  .log-line { color: var(--text-muted); }
+  .log-line.ok { color: var(--teal-dark); font-weight: 500; }
+  .log-line.warn { color: var(--warn); }
+  .log-line.err { color: var(--danger); font-weight: 500; }
+  .log-line::before { content: '▸ '; color: var(--text-dim); }
+
+  /* Stats */
+  .stats-grid {
+    display: none;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .stats-grid.visible { display: grid; }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+  }
+  .stat-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--teal);
+  }
+  .stat-value.warn { color: var(--warn); }
+  .stat-value.neutral { color: var(--blue); }
+
+  /* Results table */
+  .results-section { display: none; margin-bottom: 16px; }
+  .results-section.visible { display: block; }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .table-wrap {
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11px; min-width: 700px; }
+  thead th {
+    background: var(--surface2);
+    padding: 9px 14px;
+    text-align: left;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    font-family: var(--sans);
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #f5f8ff; }
+  td { padding: 8px 14px; color: var(--text); white-space: nowrap; }
+  td.key-col { color: var(--text-muted); max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+  td.changed { color: var(--warn); font-weight: 500; }
+  td.ok { color: var(--teal-dark); font-weight: 500; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    font-family: var(--sans);
+  }
+  .badge-C { background: var(--teal-light); color: var(--teal-dark); }
+  .badge-D { background: #fdecea; color: var(--danger); }
+
+  .more-rows {
+    padding: 10px 14px;
+    color: var(--text-dim);
+    font-family: var(--sans);
+    font-size: 12px;
+    text-align: center;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+  }
+
+  /* Download buttons */
+  .btn-download {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 13px;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(21,101,192,0.3);
+  }
+  .btn-download.visible { display: flex; }
+  .btn-download:hover { background: #0d47a1; }
+
+  .btn-download-notfound {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 11px;
+    background: var(--surface);
+    color: var(--warn);
+    border: 1px solid var(--warn);
+    border-radius: var(--radius);
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
+    margin-bottom: 10px;
+  }
+  .btn-download-notfound.visible { display: flex; }
+  .btn-download-notfound:hover { background: var(--warn-light); }
+
+  @media (max-width: 640px) {
+    .uploads { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: 1fr 1fr !important; }
+    .page-header h1 { font-size: 15px; }
+    .topbar-sub { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-icon">📊</div>
+  <span class="topbar-title">SICOM — Corretor de Balancete</span>
+  <span class="topbar-sub">Prefeitura Municipal de Betim</span>
+</div>
+
+<div class="app">
+
+  <div class="page-header">
+    <div class="page-header-icon">⚖️</div>
+    <div>
+      <h1>Correção de Balancete Mensal</h1>
+      <p>Ajusta saldos iniciais conforme saldos finais do mês anterior · Compensa diferenças automaticamente · Consolida duplicatas · Recalcula totalizadoras</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-dot"></div>
+      <span>Seleção de Arquivos</span>
+    </div>
+    <div class="card-body">
+      <div class="uploads">
+        <div class="upload-card" id="card-atual">
+          <input type="file" id="file-atual" accept=".csv,.CSV" style="display:none" />
+          <div class="upload-label"><span class="dot"></span>Balancete Atual</div>
+          <div class="upload-icon">📄</div>
+          <div class="upload-title">Mês Atual</div>
+          <div class="upload-hint">Arquivo a ser corrigido</div>
+          <div class="upload-filename" id="name-atual"></div>
+          <button class="btn-select" onclick="document.getElementById('file-atual').click()">Selecionar arquivo</button>
+        </div>
+        <div class="upload-card" id="card-anterior">
+          <input type="file" id="file-anterior" accept=".csv,.CSV" style="display:none" />
+          <div class="upload-label"><span class="dot"></span>Balancete Anterior</div>
+          <div class="upload-icon">📋</div>
+          <div class="upload-title">Mês Anterior</div>
+          <div class="upload-hint">Referência de saldos finais</div>
+          <div class="upload-filename" id="name-anterior"></div>
+          <button class="btn-select" onclick="document.getElementById('file-anterior').click()">Selecionar arquivo</button>
+        </div>
+      </div>
+
+      <div class="flow">
+        <div class="flow-line"></div>
+        <div class="flow-badge">saldo_final_anterior → saldo_inicial_atual + compensação</div>
+        <div class="flow-line"></div>
+      </div>
+
+      <button class="btn-run" id="btn-run" disabled onclick="processar()">
+        ⚙ Processar e Corrigir Balancete
+      </button>
+    </div>
+  </div>
+
+  <div class="log-panel" id="log-panel"></div>
+
+  <div class="stats-grid" id="stats-grid" style="grid-template-columns:repeat(6,1fr)">
+    <div class="stat-card">
+      <div class="stat-label">Linhas Processadas</div>
+      <div class="stat-value neutral" id="stat-total">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Duplicatas Consolidadas</div>
+      <div class="stat-value" style="color:var(--blue)" id="stat-dupl">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Linhas Corrigidas</div>
+      <div class="stat-value ok" id="stat-corrigidas">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">SI Zerado (nova conta)</div>
+      <div class="stat-value warn" id="stat-notfound">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Linhas Inseridas</div>
+      <div class="stat-value" style="color:var(--purple)" id="stat-inseridas">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Sem Alteração</div>
+      <div class="stat-value" style="color:var(--text-muted)" id="stat-igual">0</div>
+    </div>
+  </div>
+
+  <button class="btn-download" id="btn-download" onclick="baixarCSV()">
+    ⬇ Baixar Balancete Corrigido (.csv)
+  </button>
+
+  <div class="results-section" id="results-section">
+    <div class="section-title">Linhas Corrigidas (prévia)</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Chave</th>
+            <th>SI Original</th>
+            <th>Nat.</th>
+            <th>SI Novo</th>
+            <th>Nat.</th>
+            <th>Δ Compensado em</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+      <div class="more-rows" id="more-rows" style="display:none"></div>
+    </div>
+  </div>
+
+  <div class="results-section" id="notfound-section">
+    <div class="section-title">Chaves sem correspondência — SI zerado e compensado</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Chave</th>
+            <th>SI Original</th>
+            <th>Nat.</th>
+            <th>SI Novo</th>
+            <th>Compensado em</th>
+          </tr>
+        </thead>
+        <tbody id="notfound-body"></tbody>
+      </table>
+      <div class="more-rows" id="more-notfound" style="display:none"></div>
+    </div>
+  </div>
+
+  <button class="btn-download-notfound" id="btn-notfound-csv" onclick="baixarNaoEncontrados()">
+    ⚠ Baixar Relatório de SI Zerados (.csv)
+  </button>
+  <button class="btn-download-notfound" id="btn-inseridas-csv" onclick="baixarInseridas()" style="display:none;border-color:var(--purple);color:var(--purple)">
+    ⬇ Baixar Relatório de Linhas Inseridas (.csv)
+  </button>
+
+  <div class="results-section" id="inseridas-section">
+    <div class="section-title">Linhas inseridas do mês anterior (SF anterior → SI atual, SF=0)</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Chave</th>
+            <th>SI Inserido (= SF anterior)</th>
+            <th>Nat.</th>
+            <th>Movimentação</th>
+            <th>SF Resultante</th>
+          </tr>
+        </thead>
+        <tbody id="inseridas-body"></tbody>
+      </table>
+      <div class="more-rows" id="more-inseridas" style="display:none"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let csvCorrigido = null;
+  let naoEncontradosData = [];
+  let corrigidasData = [];
+  let inseridasData = [];
+
+  // --- File inputs ---
+  const fileAtual = document.getElementById('file-atual');
+  const fileAnterior = document.getElementById('file-anterior');
+
+  function setupUpload(inputEl, cardId, nameId) {
+    const card = document.getElementById(cardId);
+    const nameEl = document.getElementById(nameId);
+    inputEl.addEventListener('change', () => {
+      if (inputEl.files[0]) {
+        card.classList.add('has-file');
+        nameEl.textContent = inputEl.files[0].name;
+      }
+      checkReady();
+    });
+    card.addEventListener('dragover', e => { e.preventDefault(); card.classList.add('dragover'); });
+    card.addEventListener('dragleave', () => card.classList.remove('dragover'));
+    card.addEventListener('drop', e => {
+      e.preventDefault();
+      card.classList.remove('dragover');
+      if (e.dataTransfer.files[0]) {
+        inputEl.files = e.dataTransfer.files;
+        card.classList.add('has-file');
+        nameEl.textContent = e.dataTransfer.files[0].name;
+        checkReady();
+      }
+    });
+  }
+
+  setupUpload(fileAtual, 'card-atual', 'name-atual');
+  setupUpload(fileAnterior, 'card-anterior', 'name-anterior');
+
+  function checkReady() {
+    document.getElementById('btn-run').disabled = !(fileAtual.files[0] && fileAnterior.files[0]);
+  }
+
+  // --- CSV parsing ---
+  function lerCSV(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        // Detect encoding - try UTF-8 first, fallback handled by browser
+        const text = e.target.result;
+        const linhas = text.split(/\r?\n/).filter(l => l.trim() !== '');
+        resolve(linhas);
+      };
+      reader.onerror = reject;
+      reader.readAsText(file, 'ISO-8859-1');
+    });
+  }
+
+  function parseLinha(linha) {
+    // Split by ; but keep everything
+    const campos = linha.split(';');
+    const n = campos.length;
+    if (n < 7) return null;
+    // Last 6 fields: si_valor, si_nat, deb, cred, sf_valor, sf_nat
+    const sf_nat   = campos[n - 1];
+    const sf_valor = campos[n - 2];
+    const cred     = campos[n - 3];
+    const deb      = campos[n - 4];
+    const si_nat   = campos[n - 5];
+    const si_valor = campos[n - 6];
+    const chave    = campos.slice(0, n - 6).join(';');
+    return { chave, si_valor, si_nat, deb, cred, sf_valor, sf_nat, campos, n };
+  }
+
+  function parseNum(s) {
+    // Brazilian format: 1.234.567,89
+    if (!s || s.trim() === '') return 0;
+    return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
+  }
+
+  function formatNum(v) {
+    // Brazilian format WITHOUT thousands separator (as required by SICOM)
+    return v.toFixed(2).replace('.', ',');
+  }
+
+  function log(msg, type = '') {
+    const panel = document.getElementById('log-panel');
+    panel.classList.add('visible');
+    const div = document.createElement('div');
+    div.className = 'log-line ' + type;
+    div.textContent = msg;
+    panel.appendChild(div);
+  }
+
+  function clearLog() {
+    const panel = document.getElementById('log-panel');
+    panel.innerHTML = '';
+    panel.classList.remove('visible');
+  }
+
+  async function processar() {
+    clearLog();
+    csvCorrigido = null;
+    naoEncontradosData = [];
+    corrigidasData = [];
+    inseridasData = [];
+    document.getElementById('stats-grid').classList.remove('visible');
+    document.getElementById('results-section').classList.remove('visible');
+    document.getElementById('notfound-section').classList.remove('visible');
+    document.getElementById('inseridas-section').classList.remove('visible');
+    document.getElementById('btn-download').classList.remove('visible');
+    document.getElementById('btn-notfound-csv').classList.remove('visible');
+    document.getElementById('btn-inseridas-csv').style.display = 'none';
+    document.getElementById('table-body').innerHTML = '';
+    document.getElementById('notfound-body').innerHTML = '';
+    document.getElementById('inseridas-body').innerHTML = '';
+
+    const btn = document.getElementById('btn-run');
+    btn.disabled = true;
+    btn.textContent = '⏳ Processando...';
+
+    log('Lendo arquivos...');
+
+    try {
+      const [linhasAtual, linhasAnterior] = await Promise.all([
+        lerCSV(fileAtual.files[0]),
+        lerCSV(fileAnterior.files[0])
+      ]);
+
+      log(`Balancete atual: ${linhasAtual.length} linhas`);
+      log(`Balancete anterior: ${linhasAnterior.length} linhas`);
+
+      // Build map from anterior: chave → parsed
+      log('Indexando balancete anterior...');
+      const mapaAnterior = new Map();
+      for (const linha of linhasAnterior) {
+        const p = parseLinha(linha);
+        if (!p) continue;
+        mapaAnterior.set(p.chave, p);
+      }
+      log(`Chaves no balancete anterior: ${mapaAnterior.size}`, 'ok');
+
+      // ── ETAPA 1: Consolidar duplicatas do balancete atual ──────────────────
+      log('Verificando duplicatas no balancete atual...');
+
+      // Separar linhas não-parseable (cabeçalhos, totalizadores) das parseable
+      const linhasNaoParseable = [];
+      const linhasParseable    = [];   // { parsed, linhaOriginal, ordem }
+      const ordemChaves        = [];   // para preservar ordem de aparição
+
+      for (let i = 0; i < linhasAtual.length; i++) {
+        const p = parseLinha(linhasAtual[i]);
+        if (!p) {
+          linhasNaoParseable.push({ idx: i, linha: linhasAtual[i] });
+        } else {
+          linhasParseable.push({ parsed: p, linha: linhasAtual[i], idx: i });
+        }
+      }
+
+      // Agrupar por chave mantendo ordem de 1ª aparição
+      const mapaConsolida = new Map(); // chave → { parsed acumulado, idxPrimeiro }
+      let duplicatasCount = 0;
+
+      for (const item of linhasParseable) {
+        const p = item.parsed;
+        if (!mapaConsolida.has(p.chave)) {
+          // Primeira ocorrência — clonar campos
+          mapaConsolida.set(p.chave, {
+            campos:    [...p.campos],
+            n:         p.n,
+            chave:     p.chave,
+            si_valor:  p.si_valor,
+            si_nat:    p.si_nat,
+            debAcc:    parseNum(p.deb),
+            credAcc:   parseNum(p.cred),
+            sfAcc:     parseNum(p.sf_valor),
+            sf_nat:    p.sf_nat,
+            idxPrimeiro: item.idx,
+            count:     1
+          });
+          ordemChaves.push(p.chave);
+        } else {
+          // Duplicata — acumular valores
+          const acc = mapaConsolida.get(p.chave);
+          acc.debAcc  += parseNum(p.deb);
+          acc.credAcc += parseNum(p.cred);
+          acc.sfAcc   += parseNum(p.sf_valor);
+          // SI: somar também (será corrigido depois, mas consolidamos o original)
+          const siExistente = parseNum(acc.si_valor);
+          const siNovo      = parseNum(p.si_valor);
+          acc.si_valor = formatNum(siExistente + siNovo);
+          // Natureza: manter da primeira linha (convenção)
+          acc.count++;
+          duplicatasCount++;
+        }
+      }
+
+      if (duplicatasCount > 0) {
+        log(`Duplicatas removidas: ${duplicatasCount} linhas extras consolidadas`, 'warn');
+      } else {
+        log('Nenhuma duplicata encontrada.', 'ok');
+      }
+
+      // Reconstruir lista ordenada consolidada (parseable consolidados + não-parseable na posição original)
+      // Estratégia: reconstruir na ordem original de 1ª aparição de cada chave,
+      // intercalando as linhas não-parseable nas suas posições relativas.
+
+      // Monta mapa idx → linha não-parseable
+      const npMap = new Map(linhasNaoParseable.map(x => [x.idx, x.linha]));
+
+      // Lista final consolidada com posição de inserção preservada
+      // Percorre índices originais em ordem:
+      const linhasConsolidadas = [];
+      const chaveJaEmitida     = new Set();
+
+      for (let i = 0; i < linhasAtual.length; i++) {
+        if (npMap.has(i)) {
+          linhasConsolidadas.push({ tipo: 'np', linha: npMap.get(i) });
+          continue;
+        }
+        const p = parseLinha(linhasAtual[i]);
+        if (!p) continue;
+        if (chaveJaEmitida.has(p.chave)) continue; // duplicata — já foi emitida
+        // Emitir linha consolidada
+        const acc = mapaConsolida.get(p.chave);
+        const campos = [...acc.campos];
+        campos[acc.n - 6] = acc.si_valor;
+        campos[acc.n - 5] = acc.si_nat;
+        campos[acc.n - 4] = formatNum(acc.debAcc);
+        campos[acc.n - 3] = formatNum(acc.credAcc);
+        campos[acc.n - 2] = formatNum(acc.sfAcc);
+        campos[acc.n - 1] = acc.sf_nat;
+        linhasConsolidadas.push({ tipo: 'p', linha: campos.join(';'), chave: p.chave, acc });
+        chaveJaEmitida.add(p.chave);
+      }
+
+      // ── ETAPA 2: Corrigir SI com base no mês anterior ──────────────────────
+      log('Aplicando correções de saldo inicial...');
+      let totalLinhas = 0, corrigidas = 0, naoEncontradas = 0, iguais = 0;
+      const linhasCorrigidas = [];
+
+      for (const item of linhasConsolidadas) {
+        if (item.tipo === 'np') {
+          linhasCorrigidas.push(item.linha);
+          continue;
+        }
+
+        const linha = item.linha;
+        const p = parseLinha(linha);
+        if (!p) { linhasCorrigidas.push(linha); continue; }
+        totalLinhas++;
+
+        const anterior = mapaAnterior.get(p.chave);
+
+        if (!anterior) {
+          // Chave não encontrada: SI → 0,00
+          // Usando a mesma fórmula universal:
+          // novoSI_signed = 0, movNec = SF_signed - 0 = SF_signed
+          // delta = movNec - oldNet = SF_signed - (Cred_orig - Deb_orig)
+          // delta > 0 → Cred += delta ; delta < 0 → Deb += |delta|
+          naoEncontradas++;
+
+          const sfSinal    = sinalizado(parseNum(p.sf_valor), p.sf_nat);
+          const siNum      = parseNum(p.si_valor);
+          const debOrig    = parseNum(p.deb);
+          const credOrig   = parseNum(p.cred);
+          const oldNet     = credOrig - debOrig;
+          const delta      = sfSinal - oldNet;  // novoSI_signed = 0
+
+          let novoDeb  = debOrig;
+          let novoCred = credOrig;
+          let compensadoEm = 'sem alteração (SI já era 0,00)';
+
+          if (siNum !== 0) {
+            if (delta > 1e-4) {
+              novoCred = credOrig + delta;
+              compensadoEm = 'Créditos +' + formatNum(delta);
+            } else if (delta < -1e-4) {
+              novoDeb = debOrig + Math.abs(delta);
+              compensadoEm = 'Débitos +' + formatNum(Math.abs(delta));
+            }
+          }
+
+          const novosCampos = [...p.campos];
+          novosCampos[p.n - 6] = '0,00';
+          novosCampos[p.n - 4] = formatNum(novoDeb);
+          novosCampos[p.n - 3] = formatNum(novoCred);
+          linhasCorrigidas.push(novosCampos.join(';'));
+
+          naoEncontradosData.push({
+            ...p,
+            si_orig: p.si_valor,
+            compensado: compensadoEm
+          });
+          continue;
+        }
+
+        // Novo SI = SF do mês anterior
+        const novoSiValor = anterior.sf_valor;
+        const novoSiNat   = anterior.sf_nat;
+
+        // Check if already equal
+        if (novoSiValor === p.si_valor && novoSiNat === p.si_nat) {
+          linhasCorrigidas.push(linha);
+          iguais++;
+          continue;
+        }
+
+        // ── Compensação ────────────────────────────────────────────────────
+        // Fórmula universal (sinais): SF_signed = SI_signed + Cred - Deb
+        // onde C = positivo, D = negativo.
+        //
+        // Após trocar SI, precisamos ajustar Cred ou Deb para manter SF intacto.
+        //
+        // movNec  = SF_signed - novoSI_signed  →  saldo líquido (Cred − Deb) necessário
+        // oldNet  = Cred_orig − Deb_orig         →  saldo líquido atual
+        // delta   = movNec − oldNet              →  quanto o saldo líquido precisa mudar
+        //
+        // delta > 0 → Cred precisa aumentar em delta
+        // delta < 0 → Deb  precisa aumentar em |delta|
+        //
+        // Esta fórmula é independente da natureza do SI ou do SF.
+
+        const novoSiNum  = sinalizado(parseNum(novoSiValor), novoSiNat);
+        const sfSinal    = sinalizado(parseNum(p.sf_valor), p.sf_nat);
+        const movNec     = sfSinal - novoSiNum;
+        const debOrig    = parseNum(p.deb);
+        const credOrig   = parseNum(p.cred);
+        const oldNet     = credOrig - debOrig;
+        const delta      = movNec - oldNet;
+
+        let novoDeb  = debOrig;
+        let novoCred = credOrig;
+        let compensadoEm = '';
+
+        if (delta > 1e-4) {
+          novoCred = credOrig + delta;
+          compensadoEm = 'Créditos +' + formatNum(delta);
+        } else if (delta < -1e-4) {
+          novoDeb = debOrig + Math.abs(delta);
+          compensadoEm = 'Débitos +' + formatNum(Math.abs(delta));
+        } else {
+          compensadoEm = 'sem compensação (delta ≈ 0)';
+        }
+
+        // Rebuild line
+        const novosCampos = [...p.campos];
+        novosCampos[p.n - 6] = novoSiValor;
+        novosCampos[p.n - 5] = novoSiNat;
+        novosCampos[p.n - 4] = formatNum(novoDeb);
+        novosCampos[p.n - 3] = formatNum(novoCred);
+        // SF remains unchanged
+        linhasCorrigidas.push(novosCampos.join(';'));
+        corrigidas++;
+
+        corrigidasData.push({
+          chave: p.chave,
+          si_orig: p.si_valor,
+          si_orig_nat: p.si_nat,
+          si_novo: novoSiValor,
+          si_novo_nat: novoSiNat,
+          compensado: compensadoEm
+        });
+      }
+
+      log(`Linhas processadas: ${totalLinhas}`, 'ok');
+      if (duplicatasCount > 0) log(`Duplicatas consolidadas: ${duplicatasCount}`, 'warn');
+      log(`Corrigidas: ${corrigidas}`, 'ok');
+      if (naoEncontradas > 0) log(`SI zerado (novas contas): ${naoEncontradas}`, 'warn');
+      if (iguais > 0) log(`Sem alteração necessária: ${iguais}`);
+
+      // ── ETAPA 3: Inserir linhas do anterior ausentes no atual ──────────────
+      // Para cada chave do anterior com SF ≠ 0 que não aparece no atual,
+      // inserir uma linha com: SI = SF_anterior, movimentação zera o SF → SF = 0,00
+      log('Verificando linhas do anterior ausentes no atual...');
+
+      // Build set of chaves que já existem no atual (após consolidação)
+      const chavesAtual = new Set(
+        linhasConsolidadas
+          .filter(i => i.tipo === 'p')
+          .map(i => parseLinha(i.linha)?.chave)
+          .filter(Boolean)
+      );
+
+      let inseridas = 0;
+      const linhasParaInserir = []; // coleta antes de ordenar
+
+      for (const [chave, ant] of mapaAnterior) {
+        if (chavesAtual.has(chave)) continue;
+
+        const sfNum = parseNum(ant.sf_valor);
+        if (sfNum === 0) continue; // SF já é zero, não precisa inserir
+
+        // SI = SF do anterior
+        const siVal = ant.sf_valor;
+        const siNat = ant.sf_nat;
+        const siSigned = sinalizado(sfNum, siNat);
+
+        // Movimentação para zerar: SF_signed = siSigned + cred - deb = 0
+        // → cred - deb = -siSigned
+        // target_net = -siSigned
+        // current_net = 0 (sem movimentações)
+        // delta = target_net - 0 = -siSigned
+        const delta = -siSigned;
+        let novoDeb  = 0;
+        let novoCred = 0;
+        let movDesc  = '';
+
+        if (delta >= 0) {
+          novoCred = delta;
+          movDesc = 'Créditos ' + formatNum(delta);
+        } else {
+          novoDeb = Math.abs(delta);
+          movDesc = 'Débitos ' + formatNum(Math.abs(delta));
+        }
+
+        // Rebuild the line using the anterior campos as template,
+        // replacing the 6 trailing fields
+        const campos = [...ant.campos];
+        campos[ant.n - 6] = siVal;
+        campos[ant.n - 5] = siNat;
+        campos[ant.n - 4] = formatNum(novoDeb);
+        campos[ant.n - 3] = formatNum(novoCred);
+        campos[ant.n - 2] = '0,00';
+        campos[ant.n - 1] = siNat; // SF natureza = mesma do SI (convencional para zero)
+
+        linhasParaInserir.push({
+          linha: campos.join(';'),
+          campo2: campos[1] ?? '',   // campo índice 1 (2º da esquerda) para ordenação
+          chave,
+          si_val: siVal,
+          si_nat: siNat,
+          mov: movDesc,
+          sf: '0,00'
+        });
+      }
+
+      // Ordenar por campo[1] em ordem crescente (comparação alfanumérica)
+      linhasParaInserir.sort((a, b) => a.campo2.localeCompare(b.campo2, 'pt-BR', { numeric: true }));
+
+      // Intercalar: cada linha inserida entra logo após o último elemento de
+      // linhasCorrigidas que tenha o mesmo campo[1]. Se não houver nenhum,
+      // entra antes do primeiro elemento com campo[1] maior (ordem crescente).
+      for (const item of linhasParaInserir) {
+        let pos = -1; // índice após o qual inserir
+
+        for (let i = 0; i < linhasCorrigidas.length; i++) {
+          const c = linhasCorrigidas[i].split(';')[1] ?? '';
+          if (c === item.campo2) {
+            pos = i; // atualiza para o último com mesmo campo2
+          }
+        }
+
+        if (pos >= 0) {
+          // Inserir logo após o último com campo2 igual
+          linhasCorrigidas.splice(pos + 1, 0, item.linha);
+        } else {
+          // Não existe campo2 igual — inserir antes do primeiro com campo2 maior
+          let insertBefore = -1;
+          for (let i = 0; i < linhasCorrigidas.length; i++) {
+            const c = linhasCorrigidas[i].split(';')[1] ?? '';
+            if (c.localeCompare(item.campo2, 'pt-BR', { numeric: true }) > 0) {
+              insertBefore = i;
+              break;
+            }
+          }
+          if (insertBefore >= 0) {
+            linhasCorrigidas.splice(insertBefore, 0, item.linha);
+          } else {
+            linhasCorrigidas.push(item.linha); // campo2 maior que todos — vai ao final
+          }
+        }
+
+        inseridasData.push({ chave: item.chave, si_val: item.si_val, si_nat: item.si_nat, mov: item.mov, sf: item.sf });
+        inseridas++;
+      }
+
+      if (inseridas > 0) log(`Linhas inseridas do anterior: ${inseridas}`, 'warn');
+
+      // ── ETAPA 4: Recalcular totalizadoras (linhas que começam com 10;) ─────
+      // Para cada linha 10;, somar SI, Déb, Créd e SF de todas as outras
+      // linhas com o mesmo campo[1] (campo 2). Natureza = sinal da soma.
+      log('Recalculando totalizadoras (10;)...');
+
+      // Primeiro, indexar todas as linhas NÃO-totalizadoras por campo[1]
+      // acumulando SI, deb, cred, sf com sinal
+      const acumPorCampo2 = new Map();
+      // sign helper inline
+      const sig = (v, n) => n === 'C' ? v : -v;
+
+      for (const linha of linhasCorrigidas) {
+        if (linha.startsWith('10;')) continue; // pular as próprias totalizadoras
+        const campos = linha.split(';');
+        const n = campos.length;
+        if (n < 7) continue;
+        const c2 = campos[1];
+        const si_s  = sig(parseNum(campos[n-6]), campos[n-5]);
+        const deb   = parseNum(campos[n-4]);
+        const cred  = parseNum(campos[n-3]);
+        const sf_s  = sig(parseNum(campos[n-2]), campos[n-1]);
+        if (!acumPorCampo2.has(c2)) acumPorCampo2.set(c2, { si:0, deb:0, cred:0, sf:0 });
+        const a = acumPorCampo2.get(c2);
+        a.si   += si_s;
+        a.deb  += deb;
+        a.cred += cred;
+        a.sf   += sf_s;
+      }
+
+      // Função: converte número sinalizado → { valor, nat }
+      function signedToValNat(v, natOriginal) {
+        if (Math.abs(v) < 1e-4) return { val: '0,00', nat: natOriginal };
+        return { val: formatNum(Math.abs(v)), nat: v >= 0 ? 'C' : 'D' };
+      }
+
+      let totalizadorasRecalc = 0;
+      for (let i = 0; i < linhasCorrigidas.length; i++) {
+        const linha = linhasCorrigidas[i];
+        if (!linha.startsWith('10;')) continue;
+        const campos = linha.split(';');
+        const n = campos.length;
+        if (n < 7) continue;
+        const c2 = campos[1];
+        const acc = acumPorCampo2.get(c2);
+        if (!acc) continue;
+
+        const si  = signedToValNat(acc.si,  campos[n-5]);
+        const sf  = signedToValNat(acc.sf,  campos[n-1]);
+        campos[n-6] = si.val;
+        campos[n-5] = si.nat;
+        campos[n-4] = formatNum(acc.deb);
+        campos[n-3] = formatNum(acc.cred);
+        campos[n-2] = sf.val;
+        campos[n-1] = sf.nat;
+        linhasCorrigidas[i] = campos.join(';');
+        totalizadorasRecalc++;
+      }
+
+      if (totalizadorasRecalc > 0) log(`Totalizadoras recalculadas: ${totalizadorasRecalc}`, 'ok');
+      log('Pronto!', 'ok');
+
+      // Stats
+      document.getElementById('stat-total').textContent = totalLinhas;
+      document.getElementById('stat-dupl').textContent = duplicatasCount;
+      document.getElementById('stat-corrigidas').textContent = corrigidas;
+      document.getElementById('stat-notfound').textContent = naoEncontradas;
+      document.getElementById('stat-inseridas').textContent = inseridas;
+      document.getElementById('stat-igual').textContent = iguais;
+      document.getElementById('stats-grid').classList.add('visible');
+
+      // Preview table
+      if (corrigidas > 0) {
+        const MAX_PREVIEW = 200;
+        const body = document.getElementById('table-body');
+        const shown = corrigidasData.slice(0, MAX_PREVIEW);
+        shown.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="key-col" title="${esc(r.chave)}">${esc(shortKey(r.chave))}</td>
+            <td class="changed">${esc(r.si_orig)}</td>
+            <td><span class="badge badge-${r.si_orig_nat}">${r.si_orig_nat}</span></td>
+            <td class="ok">${esc(r.si_novo)}</td>
+            <td><span class="badge badge-${r.si_novo_nat}">${r.si_novo_nat}</span></td>
+            <td style="color:var(--warn)">${esc(r.compensado)}</td>
+          `;
+          body.appendChild(tr);
+        });
+        if (corrigidasData.length > MAX_PREVIEW) {
+          const m = document.getElementById('more-rows');
+          m.textContent = `... e mais ${corrigidasData.length - MAX_PREVIEW} linhas no arquivo baixado`;
+          m.style.display = 'block';
+        }
+        document.getElementById('results-section').classList.add('visible');
+      }
+
+      // Not found table
+      if (naoEncontradas > 0) {
+        const MAX_NF = 100;
+        const nbody = document.getElementById('notfound-body');
+        naoEncontradosData.slice(0, MAX_NF).forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="key-col" title="${esc(r.chave)}">${esc(shortKey(r.chave))}</td>
+            <td class="changed">${esc(r.si_orig || r.si_valor)}</td>
+            <td><span class="badge badge-${r.si_nat}">${r.si_nat}</span></td>
+            <td class="ok">0,00</td>
+            <td style="color:var(--warn)">${esc(r.compensado || '—')}</td>
+          `;
+          nbody.appendChild(tr);
+        });
+        if (naoEncontradosData.length > MAX_NF) {
+          const m = document.getElementById('more-notfound');
+          m.textContent = `... e mais ${naoEncontradosData.length - MAX_NF} no relatório baixado`;
+          m.style.display = 'block';
+        }
+        document.getElementById('notfound-section').classList.add('visible');
+        document.getElementById('btn-notfound-csv').classList.add('visible');
+      }
+
+      // Inseridas preview
+      if (inseridas > 0) {
+        const MAX_INS = 200;
+        const ibody = document.getElementById('inseridas-body');
+        inseridasData.slice(0, MAX_INS).forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="key-col" title="${esc(r.chave)}">${esc(shortKey(r.chave))}</td>
+            <td style="color:var(--purple)">${esc(r.si_val)}</td>
+            <td><span class="badge badge-${r.si_nat}">${r.si_nat}</span></td>
+            <td style="color:var(--warn)">${esc(r.mov)}</td>
+            <td class="ok">0,00</td>
+          `;
+          ibody.appendChild(tr);
+        });
+        if (inseridasData.length > MAX_INS) {
+          const m = document.getElementById('more-inseridas');
+          m.textContent = `... e mais ${inseridasData.length - MAX_INS} no relatório baixado`;
+          m.style.display = 'block';
+        }
+        document.getElementById('inseridas-section').classList.add('visible');
+        document.getElementById('btn-inseridas-csv').style.display = 'flex';
+      }
+
+      csvCorrigido = linhasCorrigidas.join('\r\n');
+      document.getElementById('btn-download').classList.add('visible');
+
+    } catch (err) {
+      log('Erro: ' + err.message, 'err');
+      console.error(err);
+    }
+
+    btn.disabled = false;
+    btn.textContent = '⚙ Processar e Corrigir Balancete';
+    checkReady();
+  }
+
+  function baixarInseridas() {
+    if (!inseridasData.length) return;
+    const linhas = ['CHAVE;SI_INSERIDO;SI_NAT;MOVIMENTACAO;SF_RESULTANTE'];
+    inseridasData.forEach(r => linhas.push(`${r.chave};${r.si_val};${r.si_nat};${r.mov};${r.sf}`));
+    const blob = new Blob([linhas.join('\r\n')], { type: 'text/csv;charset=iso-8859-1' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'linhas_inseridas.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function sinalizado(valor, natureza) {
+    // C = positivo, D = negativo (convenção para cálculo)
+    return natureza === 'C' ? valor : -valor;
+  }
+
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function shortKey(chave) {
+    if (chave.length > 50) return chave.slice(0, 48) + '…';
+    return chave;
+  }
+
+  function baixarCSV() {
+    if (!csvCorrigido) return;
+    const blob = new Blob([csvCorrigido], { type: 'text/csv;charset=iso-8859-1' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const nomeOriginal = fileAtual.files[0]?.name || 'balancete.csv';
+    a.download = 'CORRIGIDO_' + nomeOriginal;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function baixarNaoEncontrados() {
+    if (!naoEncontradosData.length) return;
+    const linhas = ['CHAVE;SI_ORIGINAL;SI_NAT;SI_NOVO;COMPENSADO_EM'];
+    naoEncontradosData.forEach(r => linhas.push(`${r.chave};${r.si_orig || r.si_valor};${r.si_nat};0,00;${r.compensado || ''}`));
+    const blob = new Blob([linhas.join('\r\n')], { type: 'text/csv;charset=iso-8859-1' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'nao_encontrados.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+</script>
+</body>
+</html>
